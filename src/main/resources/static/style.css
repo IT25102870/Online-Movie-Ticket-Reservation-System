@@ -1,0 +1,445 @@
+/* =============================================
+   XCINEMA — GLOBAL STYLESHEET
+   Theme: Dark cinema, red accent #a41212
+   ============================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --red:       #a41212;
+    --red-hover: #d40b0b;
+    --dark-card: #000000d6;
+    --dark-nav:  rgba(0,0,0,0.88);
+    --border:    rgba(255,255,255,0.1);
+    --input-border: #dddddd64;
+    --text-muted: rgba(255,255,255,0.55);
+}
+
+* { box-sizing: border-box; }
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-image: url('Untitled-1.jpg');
+    background-size: cover;
+    background-attachment: fixed;
+    background-position: center;
+    min-height: 100vh;
+    color: white;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* ---- NAVBAR ---- */
+.xcinema-nav {
+    background: var(--dark-nav) !important;
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.xcinema-nav .navbar-brand {
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: white !important;
+    letter-spacing: 0.5px;
+}
+
+.xcinema-nav .navbar-brand .brand-cine { color: white; font-weight: 800; }
+.xcinema-nav .navbar-brand .brand-matrix { color: var(--red); font-weight: 500; }
+
+.xcinema-nav .nav-link {
+    color: rgba(255,255,255,0.75) !important;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.xcinema-nav .nav-link:hover,
+.xcinema-nav .nav-link.active-link {
+    color: white !important;
+    background: rgba(164,18,18,0.2);
+}
+
+.xcinema-nav .nav-link.danger-link {
+    color: var(--red) !important;
+}
+
+.xcinema-nav .nav-link.danger-link:hover {
+    background: rgba(164,18,18,0.25);
+    color: #ff4444 !important;
+}
+
+/* ---- PAGE WRAPPER ---- */
+.page-wrapper {
+    position: relative;
+    z-index: 1;
+    min-height: calc(100vh - 60px);
+    padding: 2rem 0;
+}
+
+/* ---- SECTION TITLE ---- */
+.section-title {
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 0.25rem;
+}
+
+.section-title span { color: var(--red); }
+
+.section-subtitle {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+}
+
+/* ---- DARK CARD ---- */
+.dark-card {
+    background: var(--dark-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    backdrop-filter: blur(8px);
+    color: white;
+}
+
+/* ---- INPUTS (shared) ---- */
+.custom-input {
+    height: 50px;
+    border-radius: 12px;
+    border: 1px solid var(--input-border);
+    background: transparent !important;
+    color: white !important;
+}
+
+.custom-input:focus {
+    background: transparent !important;
+    box-shadow: none;
+    border-color: var(--red);
+    color: white !important;
+}
+
+.custom-input::placeholder { color: var(--text-muted); }
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+    -webkit-text-fill-color: white;
+    -webkit-box-shadow: 0 0 0px 1000px transparent inset;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+/* ---- BUTTONS ---- */
+.custom-btn {
+    height: 50px;
+    border-radius: 12px;
+    background: var(--red);
+    border: none;
+    font-weight: 600;
+    color: white;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.custom-btn:hover {
+    background: var(--red-hover);
+    color: white;
+    transform: translateY(-1px);
+}
+
+.btn-outline-red {
+    border: 1.5px solid var(--red);
+    color: var(--red);
+    border-radius: 10px;
+    font-weight: 500;
+    background: transparent;
+    transition: all 0.2s;
+}
+
+.btn-outline-red:hover {
+    background: var(--red);
+    color: white;
+}
+
+/* ---- AUTH CARD ---- */
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--dark-card);
+    padding: 40px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    backdrop-filter: blur(12px);
+}
+
+.auth-card .title { text-align: center; margin-bottom: 10px; font-weight: 600; color: white; }
+.auth-card .title1 { text-align: center; margin-bottom: 10px; font-weight: 600; color: white; }
+.textd { color: var(--red); }
+.spn { font-size: 12.5px; }
+
+.form-section { display: none; animation: fade 0.4s ease; }
+.active-form { display: block; }
+
+@keyframes fade {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- MOVIE CARDS ---- */
+.movie-card {
+    background: var(--dark-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: transform 0.25s, box-shadow 0.25s;
+    backdrop-filter: blur(6px);
+    height: 100%;
+}
+
+.movie-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 50px rgba(164,18,18,0.3);
+    border-color: rgba(164,18,18,0.4);
+}
+
+.movie-card .movie-poster {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    background: linear-gradient(135deg, #1a0000, #3d0000);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+}
+
+.movie-card .card-body { padding: 1.2rem; }
+
+.badge-status {
+    font-size: 0.7rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.badge-now { background: rgba(164,18,18,0.85); color: white; }
+.badge-upcoming { background: rgba(255,165,0,0.85); color: white; }
+
+.star-rating { color: #f5c518; font-size: 0.85rem; }
+
+/* ---- SEARCH BAR ---- */
+.search-bar {
+    background: var(--dark-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.2rem 1.5rem;
+    backdrop-filter: blur(8px);
+    margin-bottom: 2rem;
+}
+
+/* ---- TABLES ---- */
+.dark-table {
+    background: var(--dark-card);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.dark-table table { margin: 0; color: white; }
+.dark-table thead { background: rgba(164,18,18,0.25); }
+.dark-table thead th { border-color: var(--border); font-weight: 600; padding: 1rem; }
+.dark-table tbody td { border-color: var(--border); padding: 0.9rem 1rem; vertical-align: middle; }
+.dark-table tbody tr:hover { background: rgba(255,255,255,0.04); }
+
+/* ---- STAT CARDS (Admin) ---- */
+.stat-card {
+    background: var(--dark-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    backdrop-filter: blur(8px);
+    transition: transform 0.2s;
+}
+
+.stat-card:hover { transform: translateY(-4px); }
+.stat-card .stat-icon { font-size: 2.2rem; margin-bottom: 0.5rem; }
+.stat-card .stat-value { font-size: 2rem; font-weight: 700; color: var(--red); }
+.stat-card .stat-label { color: var(--text-muted); font-size: 0.9rem; }
+
+/* ---- BOOKING CARD ---- */
+.booking-card {
+    background: var(--dark-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 1rem;
+    backdrop-filter: blur(6px);
+    transition: border-color 0.2s;
+}
+
+.booking-card:hover { border-color: rgba(164,18,18,0.4); }
+
+/* ---- REVIEW CARD ---- */
+.review-card {
+    background: var(--dark-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 1rem;
+    backdrop-filter: blur(6px);
+}
+
+/* ---- SEAT GRID ---- */
+.seat-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+
+.seat-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    border: 1.5px solid rgba(255,255,255,0.3);
+    background: transparent;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.seat-btn:hover:not(.booked) { border-color: var(--red); background: rgba(164,18,18,0.3); }
+.seat-btn.selected { background: var(--red); border-color: var(--red); }
+.seat-btn.booked { background: rgba(255,255,255,0.1); color: var(--text-muted); cursor: not-allowed; }
+
+/* ---- TOAST ---- */
+.toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; }
+
+/* ---- MISC ---- */
+.form-label { color: rgba(255,255,255,0.85); font-size: 0.9rem; font-weight: 500; margin-bottom: 6px; }
+.invalid-feedback { color: #ff6b6b !important; }
+.text-red { color: var(--red) !important; }
+.border-red { border-color: var(--red) !important; }
+.divider { border-color: var(--border); }
+
+.nav-pills .nav-link { color: rgba(255,255,255,0.7); border-radius: 10px; }
+.nav-pills .nav-link.active { background: var(--red); color: white; }
+
+@media (max-width: 576px) {
+    .auth-card { padding: 25px; }
+    .section-title { font-size: 1.4rem; }
+}
+
+/* ---- LOGIN TYPE TOGGLE ---- */
+.login-type-toggle {
+    background: rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 4px;
+    gap: 4px;
+}
+
+.login-tab {
+    flex: 1;
+    padding: 9px 0;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    color: rgba(255,255,255,0.5);
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.login-tab.active {
+    background: var(--red);
+    color: white;
+    box-shadow: 0 2px 10px rgba(164,18,18,0.4);
+}
+
+.login-tab:hover:not(.active) {
+    color: rgba(255,255,255,0.85);
+    background: rgba(255,255,255,0.08);
+}
+
+/* ---- THEMED SELECT (Permissions dropdown) ---- */
+.themed-select {
+    width: 100%;
+    height: 50px;
+    border-radius: 12px;
+    border: 1px solid var(--input-border);
+    background: rgba(164,18,18,0.08);
+    color: white;
+    padding: 0 1rem;
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a41212' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.themed-select:focus {
+    outline: none;
+    border-color: var(--red);
+    box-shadow: 0 0 0 3px rgba(164,18,18,0.15);
+    background-color: rgba(164,18,18,0.12);
+}
+
+.themed-select option {
+    background: #1a0000;
+    color: white;
+    padding: 8px;
+}
+
+/* ---- POSTER UPLOAD BUTTON ---- */
+.poster-upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: rgba(164,18,18,0.08);
+    color: rgba(255,255,255,0.75);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.poster-upload-btn:hover {
+    border-color: var(--red);
+    background: rgba(164,18,18,0.2);
+    color: white;
+}
+
+/* ---- MOVIE CARD POSTER IMAGE ---- */
+.movie-poster-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 16px 16px 0 0;
+    display: block;
+}
+
