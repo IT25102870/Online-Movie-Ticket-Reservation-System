@@ -1,0 +1,8 @@
+M1,Jaws,Thriller/Horror,15.0,7:00 PM,NOW_SHOWING,0.0,/images/movie_1779176962626.jpeg
+M2,Michael,Biography,20.0,4:00 PM,UPCOMING,0.0,/images/movie_1779185385894.jpg
+M3,Extraction,Action,15.0,4:00 PM,NOW_SHOWING,5.0,/images/movie_1779187842248.jpg
+M4,The Nun,Horror,10.0,7:00 PM,NOW_SHOWING,4.0,/images/movie_1779187872289.jpg
+M5,Wall E,Family/Sci-fi,20.0,10:00 AM,NOW_SHOWING,0.0,/images/movie_1779187950504.jpg
+M6,Monsters Inc.,Family,20.0,4:00 PM,NOW_SHOWING,0.0,/images/movie_1779188005077.jpg
+M7,The Meg,Action/Sci-fi,15.0,4:00 PM,NOW_SHOWING,0.0,/images/movie_1779188095613.jpg
+M8,Avengers:Doomsday,Sci-fi/Action,30.0,7:00 PM,UPCOMING,0.0,/images/movie_1779188540732.jpg
