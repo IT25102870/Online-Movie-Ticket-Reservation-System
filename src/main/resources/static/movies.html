@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CINEmatrix — Movies</title>
+    <meta name="description" content="Browse all movies now showing and upcoming at CINEmatrix.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg xcinema-nav">
+    <div class="container">
+        <a class="navbar-brand" href="movies.html">🎬 <span class="brand-cine">CINE</span><span class="brand-matrix">matrix</span></a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav ms-auto align-items-center gap-1">
+                <li class="nav-item"><a class="nav-link active-link" href="movies.html">🎬 Movies</a></li>
+                <li class="nav-item"><a class="nav-link" href="my-bookings.html">🎟️ My Bookings</a></li>
+                <li class="nav-item"><a class="nav-link" href="reviews.html">⭐ Reviews</a></li>
+                <li class="nav-item"><a class="nav-link" href="profile.html">👤 Profile</a></li>
+                <li class="nav-item ms-2">
+                    <span class="text-muted me-2" id="navUserName" style="font-size:0.85rem;color:rgba(255,255,255,0.5)!important"></span>
+                    <a class="nav-link danger-link d-inline" href="index.html" id="logoutBtn">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="page-wrapper">
+<div class="container">
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-1">
+        <div>
+            <h1 class="section-title">Now <span>Showing</span></h1>
+            <p class="section-subtitle">Find your next favourite film</p>
+        </div>
+    </div>
+
+    <!-- SEARCH + FILTER -->
+    <div class="search-bar d-flex flex-wrap gap-2 align-items-center">
+        <input type="text" id="searchInput" class="form-control custom-input flex-grow-1" placeholder="🔍  Search by title..." style="max-width:320px">
+        <input type="number" id="ratingFilter" class="form-control custom-input" placeholder="Min rating (1-5)" style="max-width:180px" min="1" max="5" step="0.5">
+        <select id="statusFilter" class="themed-select" style="max-width:180px;height:50px">
+            <option value="">All Status</option>
+            <option value="NOW_SHOWING">🟢 Now Showing</option>
+            <option value="UPCOMING">🟡 Upcoming</option>
+        </select>
+        <button class="btn custom-btn px-4" onclick="loadMovies()" style="height:50px">Search</button>
+        <button class="btn btn-outline-red px-3" onclick="resetFilters()" style="height:50px">Reset</button>
+    </div>
+
+    <!-- MOVIE GRID -->
+    <div id="movieGrid" class="row g-4">
+        <div class="col-12 text-center py-5">
+            <div class="spinner-border text-danger" role="status"></div>
+            <p class="mt-2" style="color:var(--text-muted)">Loading movies...</p>
+        </div>
+    </div>
+
+</div>
+</div>
+
+<!-- MOVIE DETAIL MODAL -->
+<div class="modal fade" id="movieModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content dark-card border-0">
+            <div class="modal-header" style="border-color:var(--border)">
+                <h5 class="modal-title" id="modalTitle">Movie Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+            <div class="modal-footer" style="border-color:var(--border)">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" id="modalBookBtn" class="btn custom-btn px-4">🎟️ Book Ticket</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const API = 'http://localhost:8080';
+
+// Auth guard
+const userName = localStorage.getItem('userName');
+if (!userName) window.location.href = 'index.html';
+document.getElementById('navUserName').textContent = 'Hi, ' + userName;
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.clear();
+});
+
+async function loadMovies() {
+    const grid = document.getElementById('movieGrid');
+    grid.innerHTML = `<div class="col-12 text-center py-5"><div class="spinner-border text-danger"></div></div>`;
+
+    const keyword = document.getElementById('searchInput').value.trim();
+    const rating  = document.getElementById('ratingFilter').value.trim();
+    const status  = document.getElementById('statusFilter').value;
+
+    try {
+        let movies;
+        if (keyword) {
+            const res = await fetch(`${API}/movies/search/title?keyword=${encodeURIComponent(keyword)}`);
+            movies = await res.json();
+        } else if (rating) {
+            const res = await fetch(`${API}/movies/search/rating?min=${rating}`);
+            movies = await res.json();
+        } else {
+            const res = await fetch(`${API}/movies/all`);
+            movies = await res.json();
+        }
+
+        if (status) movies = movies.filter(m => m.status === status);
+
+        if (!movies.length) {
+            grid.innerHTML = `<div class="col-12 text-center py-5" style="color:var(--text-muted)">
+                <div style="font-size:3rem">🎬</div><p class="mt-2">No movies found.</p></div>`;
+            return;
+        }
+
+        grid.innerHTML = movies.map(m => movieCard(m)).join('');
+
+    } catch (e) {
+        grid.innerHTML = `<div class="col-12 text-center py-5" style="color:#ff6b6b">
+            Could not load movies. Make sure the server is running.</div>`;
+    }
+}
+
+function movieCard(m) {
+    const badge = m.status === 'UPCOMING'
+        ? `<span class="badge-status badge-upcoming">Upcoming</span>`
+        : `<span class="badge-status badge-now">Now Showing</span>`;
+    const stars = '★'.repeat(Math.round(m.rating || 0)) + '☆'.repeat(5 - Math.round(m.rating || 0));
+    const poster = m.imageUrl
+        ? `<img src="${m.imageUrl}" alt="${m.title}" class="movie-poster-img">`
+        : `<div class="movie-poster">${movieEmoji(m.genre)}</div>`;
+
+    return `
+    <div class="col-sm-6 col-md-4 col-lg-3">
+        <div class="movie-card h-100" onclick="openModal(${JSON.stringify(m).replace(/"/g,'&quot;')})">
+            ${poster}
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                    <h6 class="mb-0 fw-bold" style="line-height:1.3">${m.title}</h6>
+                    ${badge}
+                </div>
+                <div class="star-rating mt-1">${stars}</div>
+                <p class="mt-2 mb-1" style="color:var(--text-muted);font-size:0.82rem">🎭 ${m.genre}</p>
+                <p class="mb-1" style="color:var(--text-muted);font-size:0.82rem">🕐 ${m.showtime}</p>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <span class="fw-bold text-red">$${parseFloat(m.price).toFixed(2)}</span>
+                    <button class="btn btn-outline-red btn-sm" onclick="event.stopPropagation();bookTicket('${m.id}','${m.title.replace(/'/g,"\\'")}',${ m.price },'${m.showtime.replace(/'/g,"\\'")}')">Book</button>
+                </div>
+            </div>
+        </div>
+    </div>`;
+}
+
+function movieEmoji(genre) {
+    const g = (genre||'').toLowerCase();
+    if (g.includes('action')) return '💥';
+    if (g.includes('horror')) return '👻';
+    if (g.includes('comedy')) return '😂';
+    if (g.includes('romance')) return '💕';
+    if (g.includes('sci')) return '🚀';
+    if (g.includes('thriller')) return '🔪';
+    if (g.includes('drama')) return '🎭';
+    if (g.includes('animation')) return '🎨';
+    return '🎬';
+}
+
+function openModal(m) {
+    const stars = '★'.repeat(Math.round(m.rating||0)) + '☆'.repeat(5-Math.round(m.rating||0));
+    const posterHtml = m.imageUrl
+        ? `<img src="${m.imageUrl}" alt="${m.title}" style="width:100%;border-radius:12px;object-fit:cover;max-height:200px">`
+        : `<div style="font-size:5rem;background:rgba(164,18,18,0.15);border-radius:16px;padding:2rem;text-align:center">${movieEmoji(m.genre)}</div>`;
+    document.getElementById('modalTitle').textContent = m.title;
+    document.getElementById('modalBody').innerHTML = `
+        <div class="row">
+            <div class="col-md-4 mb-3">${posterHtml}</div>
+            <div class="col-md-8">
+                <p><span style="color:var(--text-muted)">Genre:</span> <strong>${m.genre}</strong></p>
+                <p><span style="color:var(--text-muted)">Showtime:</span> <strong>${m.showtime}</strong></p>
+                <p><span style="color:var(--text-muted)">Price:</span> <strong class="text-red">$${parseFloat(m.price).toFixed(2)}</strong></p>
+                <p><span style="color:var(--text-muted)">Rating:</span> <span class="star-rating">${stars}</span> (${m.rating}/5)</p>
+                <p><span style="color:var(--text-muted)">Status:</span> <strong>${m.status?.replace('_',' ')}</strong></p>
+            </div>
+        </div>`;
+    document.getElementById('modalBookBtn').href = `book-ticket.html?movieId=${m.id}&movieTitle=${encodeURIComponent(m.title)}&price=${m.price}&showtime=${encodeURIComponent(m.showtime)}`;
+    new bootstrap.Modal(document.getElementById('movieModal')).show();
+}
+
+function bookTicket(id, title, price, showtime) {
+    const p = price  != null ? price  : 0;
+    const s = showtime       ? showtime : '';
+    window.location.href = `book-ticket.html?movieId=${id}&movieTitle=${encodeURIComponent(title)}&price=${p}&showtime=${encodeURIComponent(s)}`;
+}
+
+function resetFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('ratingFilter').value = '';
+    document.getElementById('statusFilter').value = '';
+    loadMovies();
+}
+
+loadMovies();
+</script>
+</body>
+</html>
