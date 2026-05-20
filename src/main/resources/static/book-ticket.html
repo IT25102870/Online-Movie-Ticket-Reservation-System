@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CINEmatrix — Book Ticket</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* ── SCREEN ── */
+        .screen-wrap {
+            perspective: 400px;
+            margin-bottom: 2rem;
+        }
+        .screen {
+            background: linear-gradient(to bottom, rgba(164,18,18,0.6), rgba(164,18,18,0.1));
+            border-radius: 50% / 12px;
+            height: 14px;
+            width: 85%;
+            margin: 0 auto 6px;
+            box-shadow: 0 0 40px rgba(164,18,18,0.5), 0 0 80px rgba(164,18,18,0.2);
+        }
+        .screen-label {
+            text-align: center;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 6px;
+            color: rgba(255,255,255,0.35);
+            text-transform: uppercase;
+        }
+
+        /* ── SEAT GRID ── */
+        .seat-map {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            align-items: center;
+            margin: 0 auto;
+            max-width: 620px;
+        }
+        .seat-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .row-label {
+            width: 22px;
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.35);
+            flex-shrink: 0;
+        }
+        .seat-gap { width: 18px; flex-shrink: 0; }
+
+        /* ── SEAT BUTTON ── */
+        .seat {
+            width: 38px;
+            height: 34px;
+            border-radius: 6px 6px 4px 4px;
+            border: 1.5px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.05);
+            color: rgba(255,255,255,0.55);
+            font-size: 0.62rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Inter', sans-serif;
+        }
+        /* seat "cushion" line */
+        .seat::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 6px;
+            right: 6px;
+            height: 3px;
+            border-radius: 2px;
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* Balcony row seats */
+        .seat.balcony { border-color: rgba(164,18,18,0.4); }
+        .seat.balcony::after { background: rgba(164,18,18,0.2); }
+
+        /* States */
+        .seat:hover:not(.booked):not(.selected) {
+            border-color: rgba(164,18,18,0.9);
+            background: rgba(164,18,18,0.2);
+            color: white;
+            transform: translateY(-2px);
+        }
+        .seat.selected {
+            background: var(--red);
+            border-color: var(--red);
+            color: white;
+            box-shadow: 0 0 14px rgba(164,18,18,0.7);
+            transform: translateY(-2px);
+        }
+        .seat.selected::after { background: rgba(255,255,255,0.25); }
+
+        .seat.booked {
+            background: rgba(255,255,255,0.04);
+            border-color: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.18);
+            cursor: not-allowed;
+        }
+        .seat.booked::after { background: rgba(255,255,255,0.04); }
+
+        /* ── LEGEND ── */
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 1.8rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.6);
+        }
+        .legend-box {
+            width: 20px;
+            height: 18px;
+            border-radius: 4px;
+            border: 1.5px solid;
+        }
+
+        /* ── ZONE DIVIDER ── */
+        .zone-divider {
+            width: 85%;
+            max-width: 620px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 4px 0;
+        }
+        .zone-divider hr { flex: 1; border-color: var(--border); margin: 0; }
+        .zone-divider span {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.3);
+            white-space: nowrap;
+        }
+
+        /* ── SELECTION INFO BAR ── */
+        .selection-bar {
+            background: rgba(164,18,18,0.15);
+            border: 1px solid rgba(164,18,18,0.3);
+            border-radius: 14px;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+
+        @media (max-width: 600px) {
+            .seat { width: 28px; height: 26px; font-size: 0.5rem; }
+            .seat-gap { width: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg xcinema-nav">
+    <div class="container">
+        <a class="navbar-brand" href="movies.html">🎬 <span class="brand-cine">CINE</span><span class="brand-matrix">matrix</span></a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ms-auto align-items-center gap-1">
+                <li class="nav-item"><a class="nav-link" href="movies.html">🎬 Movies</a></li>
+                <li class="nav-item"><a class="nav-link active-link" href="my-bookings.html">🎟️ My Bookings</a></li>
+                <li class="nav-item"><a class="nav-link" href="reviews.html">⭐ Reviews</a></li>
+                <li class="nav-item"><a class="nav-link" href="profile.html">👤 Profile</a></li>
+                <li class="nav-item"><a class="nav-link danger-link" href="index.html" onclick="localStorage.clear()">Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="page-wrapper">
+<div class="container">
+
+    <div class="mb-3">
+        <a href="movies.html" style="color:var(--text-muted);text-decoration:none;font-size:0.9rem">← Back to Movies</a>
+        <h1 class="section-title mt-2">Select Your <span>Seats</span></h1>
+        <p class="section-subtitle">Click seats to select — click again to deselect — pay at the venue</p>
+    </div>
+
+    <!-- MOVIE BANNER -->
+    <div class="dark-card p-3 mb-4 d-flex align-items-center gap-3 flex-wrap" id="movieBanner">
+        <div style="font-size:2rem;background:rgba(164,18,18,0.15);border-radius:10px;padding:0.6rem 0.9rem">🎬</div>
+        <div class="flex-grow-1">
+            <h5 class="mb-0 fw-bold" id="bannerTitle">Loading...</h5>
+            <p class="mb-0" style="color:var(--text-muted);font-size:0.85rem" id="bannerInfo"></p>
+        </div>
+        <div class="text-end">
+            <div style="color:var(--text-muted);font-size:0.75rem">Ticket Price</div>
+            <div class="fw-bold text-red fs-5" id="bannerPrice"></div>
+        </div>
+    </div>
+
+    <!-- SEAT MAP CARD -->
+    <div class="dark-card p-4 mb-4">
+
+        <!-- Screen -->
+        <div class="screen-wrap">
+            <div class="screen"></div>
+            <div class="screen-label">screen</div>
+        </div>
+
+        <!-- Loading spinner -->
+        <div id="mapLoading" class="text-center py-3">
+            <div class="spinner-border text-danger spinner-border-sm"></div>
+            <span class="ms-2" style="color:var(--text-muted);font-size:0.9rem">Loading seats...</span>
+        </div>
+
+        <!-- Seat grid -->
+        <div id="seatMap" style="display:none">
+
+            <!-- BALCONY section (Rows A–E) -->
+            <div class="zone-divider mx-auto mb-1">
+                <hr><span id="balconyLabel" style="color:rgba(164,18,18,0.7)">🎭 Balcony — Premium</span><hr>
+            </div>
+            <div class="seat-map" id="balconySection"></div>
+
+            <!-- GAP between sections -->
+            <div style="height:1.5rem"></div>
+
+            <!-- ODC section (Rows F–J) -->
+            <div class="zone-divider mx-auto mb-1">
+                <hr><span id="odcLabel">🪑 ODC — Open Deck</span><hr>
+            </div>
+            <div class="seat-map" id="odcSection"></div>
+
+        </div>
+
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-box" style="background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.2)"></div>
+                Available
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background:rgba(164,18,18,0.4);border-color:rgba(164,18,18,0.8)"></div>
+                Selected
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background:rgba(164,18,18,0.08);border-color:rgba(164,18,18,0.35)"></div>
+                Balcony Zone
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.08)"></div>
+                Booked
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SELECTION INFO + CONFIRM -->
+    <div class="dark-card p-4" id="bookingPanel">
+
+        <!-- SELECTED SEATS SUMMARY -->
+        <div class="selection-bar mb-4" id="selectionBar">
+            <div class="flex-grow-1">
+                <div style="color:var(--text-muted);font-size:0.8rem;margin-bottom:4px">
+                    Selected Seats <span id="seatCountBadge" style="background:var(--red);color:white;border-radius:20px;padding:1px 8px;font-size:0.75rem;margin-left:6px">0</span>
+                </div>
+                <div class="fw-bold" id="selectedSeatDisplay" style="font-size:1rem;letter-spacing:1px">— None —</div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+                <div style="color:var(--text-muted);font-size:0.8rem;margin-bottom:2px">Total Price</div>
+                <div class="fw-bold text-red fs-5" id="totalPriceDisplay">$0.00</div>
+            </div>
+        </div>
+
+        <!-- SELECTED SEAT CHIPS -->
+        <div id="seatChips" class="d-flex flex-wrap gap-2 mb-4" style="min-height:32px"></div>
+
+        <form id="bookingForm" class="needs-validation" novalidate>
+            <div class="mb-3">
+                <label class="form-label">Showtime</label>
+                <select class="themed-select" id="showtime" required style="height:50px">
+                    <option value="">— Select a showtime —</option>
+                    <option value="10:00 AM">10:00 AM — Morning</option>
+                    <option value="4:00 PM">4:00 PM — Afternoon</option>
+                    <option value="7:00 PM">7:00 PM — Evening</option>
+                </select>
+                <div class="invalid-feedback">Please select a showtime.</div>
+            </div>
+
+            <div id="bookingMsg" class="text-center mb-3" style="display:none;font-size:0.9rem"></div>
+
+            <div class="d-flex gap-3">
+                <button type="submit" class="btn custom-btn flex-grow-1" id="confirmBtn" disabled>
+                    🎟️ Book Seats
+                </button>
+                <button type="button" class="btn btn-outline-red px-4" onclick="clearAllSeats()">Clear All</button>
+            </div>
+            <p class="text-center mt-3" style="color:var(--text-muted);font-size:0.8rem">
+                💳 Payment is collected at the venue. Please arrive 15 mins early.
+            </p>
+        </form>
+    </div>
+
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ── INIT ─────────────────────────────────────────────
+const API      = 'http://localhost:8080';
+const userId   = localStorage.getItem('userId');
+const userName = localStorage.getItem('userName');
+if (!userName) window.location.href = 'index.html';
+
+// ── URL PARAMS ───────────────────────────────────────
+const params     = new URLSearchParams(window.location.search);
+const movieId    = params.get('movieId')    || '';
+const movieTitle = params.get('movieTitle') || 'Movie';
+const price      = params.get('price')      || '0';
+const showtime   = params.get('showtime')   || '';
+
+// ── FILL BANNER ──────────────────────────────────────
+document.getElementById('bannerTitle').textContent = decodeURIComponent(movieTitle);
+document.getElementById('bannerInfo').textContent  = showtime ? '🕐 ' + showtime : '';
+document.getElementById('bannerPrice').textContent = price ? '$' + parseFloat(price).toFixed(2) : '';
+
+// Pre-select showtime in dropdown if it matches one of the options
+if (showtime) {
+    const sel = document.getElementById('showtime');
+    // Try exact match first
+    const opt = [...sel.options].find(o => o.value === showtime);
+    if (opt) sel.value = showtime;
+    // else leave as "select a showtime"
+}
+
+// ── SEAT CONFIG ──────────────────────────────────────
+const ROWS    = ['A','B','C','D','E','F','G','H','I','J'];
+const COLS    = 12;
+const BALCONY = ['A','B','C','D','E'];   // Rows A-E → Balcony
+const ODC     = ['F','G','H','I','J'];   // Rows F-J → ODC
+
+// ── PRICING ─────────────────────────────────────────
+let BASE_PRICE    = parseFloat(price) || 0;
+let BALCONY_PRICE = +(BASE_PRICE * 1.5).toFixed(2);
+let ODC_PRICE     = BASE_PRICE;
+
+function getSeatPrice(type) {
+    return type === 'BALCONY' ? BALCONY_PRICE : ODC_PRICE;
+}
+
+function applyPriceLabels() {
+    if (BASE_PRICE > 0) {
+        document.getElementById('bannerPrice').textContent    = '$' + BASE_PRICE.toFixed(2);
+        document.getElementById('balconyLabel').textContent   = `🎭 Balcony — Premium  ($${BALCONY_PRICE.toFixed(2)}/seat)`;
+        document.getElementById('odcLabel').textContent       = `🪑 ODC — Open Deck  ($${ODC_PRICE.toFixed(2)}/seat)`;
+    }
+}
+
+// Fallback: if price wasn’t in the URL (or was 0), fetch it from the movie API
+async function initPrice() {
+    if (BASE_PRICE === 0 && movieId) {
+        try {
+            const movie = await fetch(`${API}/movies/${movieId}`).then(r => r.json());
+            if (movie && parseFloat(movie.price) > 0) {
+                BASE_PRICE    = parseFloat(movie.price);
+                BALCONY_PRICE = +(BASE_PRICE * 1.5).toFixed(2);
+                ODC_PRICE     = BASE_PRICE;
+                applyPriceLabels();
+                updateSelectionUI(); // refresh total if seats already selected
+            }
+        } catch(e) { /* silent fail — keep $0 */ }
+    } else {
+        applyPriceLabels();
+    }
+}
+
+// ── SEAT STATE ───────────────────────────────────────
+const selectedSeats = new Map();  // seatId → ticketType
+let   bookedSeats   = new Set();
+
+// ── INIT ─────────────────────────────────────────────
+async function init() {
+    await initPrice();       // ensure price is set (fetch from API if needed)
+    await loadBookedSeats(); // then render the seat map
+}
+init();
+async function loadBookedSeats() {
+    try {
+        if (movieId) {
+            const bookings = await fetch(`${API}/bookings/movie/${movieId}`).then(r => r.json());
+            bookings.forEach(b => bookedSeats.add(b.seatId));
+        }
+    } catch(e) { /* show all as available */ }
+    renderSeatMap();
+}
+
+// ── RENDER SEAT MAP ─────────────────────────────────
+function renderSeatMap() {
+    document.getElementById('mapLoading').style.display = 'none';
+    document.getElementById('seatMap').style.display    = '';
+    renderSection('balconySection', BALCONY, true);
+    renderSection('odcSection',     ODC,     false);
+}
+
+function renderSection(containerId, rows, isBalcony) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+
+    rows.forEach(row => {
+        const rowEl = document.createElement('div');
+        rowEl.className = 'seat-row';
+
+        // Left row label
+        const lbl = document.createElement('div');
+        lbl.className   = 'row-label';
+        lbl.textContent = row;
+        rowEl.appendChild(lbl);
+
+        for (let col = 1; col <= COLS; col++) {
+            // Aisle gap between col 6 and 7
+            if (col === 7) {
+                const gap = document.createElement('div');
+                gap.className = 'seat-gap';
+                rowEl.appendChild(gap);
+            }
+
+            const seatId = row + col;
+            const btn    = document.createElement('button');
+            btn.type         = 'button';
+            btn.className    = 'seat' + (isBalcony ? ' balcony' : '');
+            btn.textContent  = seatId;
+            btn.dataset.seat = seatId;
+            btn.dataset.type = isBalcony ? 'BALCONY' : 'ODC';
+            btn.title        = seatId + (isBalcony ? ' — Balcony' : ' — ODC');
+
+            if (bookedSeats.has(seatId)) {
+                btn.classList.add('booked');
+                btn.disabled = true;
+                btn.title   += ' (Booked)';
+            } else {
+                btn.addEventListener('click', () => toggleSeat(btn));
+            }
+
+            rowEl.appendChild(btn);
+        }
+
+        // Right row label
+        const lbl2 = document.createElement('div');
+        lbl2.className   = 'row-label';
+        lbl2.textContent = row;
+        rowEl.appendChild(lbl2);
+
+        container.appendChild(rowEl);
+    });
+}
+
+// ── TOGGLE SEAT SELECTION ────────────────────────────
+function toggleSeat(btn) {
+    const seatId = btn.dataset.seat;
+    const type   = btn.dataset.type;
+
+    if (selectedSeats.has(seatId)) {
+        // Deselect
+        selectedSeats.delete(seatId);
+        btn.classList.remove('selected');
+    } else {
+        // Select
+        selectedSeats.set(seatId, type);
+        btn.classList.add('selected');
+    }
+
+    updateSelectionUI();
+}
+
+// ── UPDATE SELECTION SUMMARY ─────────────────────────
+function updateSelectionUI() {
+    const count    = selectedSeats.size;
+    const seatList = [...selectedSeats.keys()].sort();
+
+    // Calculate total with per-type pricing
+    let total = 0;
+    selectedSeats.forEach((type) => { total += getSeatPrice(type); });
+
+    document.getElementById('seatCountBadge').textContent      = count;
+    document.getElementById('selectedSeatDisplay').textContent  = count ? seatList.join(', ') : '— None —';
+    document.getElementById('totalPriceDisplay').textContent    = '$' + total.toFixed(2);
+    document.getElementById('confirmBtn').disabled              = (count === 0);
+    document.getElementById('confirmBtn').textContent           =
+        count > 1 ? `🎟️ Book ${count} Seats — $${total.toFixed(2)}` : count === 1 ? `🎟️ Book Seat — $${total.toFixed(2)}` : '🎟️ Book Seats';
+
+    // Render seat chips with individual price
+    const chips = document.getElementById('seatChips');
+    chips.innerHTML = seatList.map(id => {
+        const t = selectedSeats.get(id);
+        const p = getSeatPrice(t).toFixed(2);
+        return `<span style="
+            display:inline-flex;align-items:center;gap:6px;
+            background:rgba(164,18,18,0.2);border:1px solid rgba(164,18,18,0.5);
+            border-radius:20px;padding:3px 12px;font-size:0.8rem;font-weight:600;color:white">
+            ${t === 'BALCONY' ? '🎭' : '🪑'} ${id} <span style="color:rgba(255,255,255,0.6)">$${p}</span>
+            <span onclick="deselectSeat('${id}')" style="cursor:pointer;color:rgba(255,255,255,0.4);font-size:1rem;line-height:1">×</span>
+        </span>`;
+    }).join('');
+}
+
+// Deselect from chip ×
+function deselectSeat(seatId) {
+    selectedSeats.delete(seatId);
+    const btn = document.querySelector(`.seat[data-seat="${seatId}"]`);
+    if (btn) btn.classList.remove('selected');
+    updateSelectionUI();
+}
+
+function clearAllSeats() {
+    selectedSeats.clear();
+    document.querySelectorAll('.seat.selected').forEach(s => s.classList.remove('selected'));
+    updateSelectionUI();
+}
+
+// ── CONFIRM BOOKING ──────────────────────────────────
+document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form  = e.target;
+    const msgEl = document.getElementById('bookingMsg');
+    msgEl.style.display = 'none';
+
+    if (selectedSeats.size === 0) {
+        msgEl.style.color   = '#ff6b6b';
+        msgEl.textContent   = 'Please select at least one seat from the map above.';
+        msgEl.style.display = 'block';
+        return;
+    }
+    if (!form.checkValidity()) { form.classList.add('was-validated'); return; }
+    if (!userId) {
+        msgEl.style.color   = '#ff6b6b';
+        msgEl.textContent   = 'Please log in again.';
+        msgEl.style.display = 'block';
+        return;
+    }
+
+    const showtimeVal = document.getElementById('showtime').value.trim();
+    const btn         = document.getElementById('confirmBtn');
+    btn.disabled      = true;
+    btn.textContent   = '⏳ Booking...';
+
+    const seatEntries = [...selectedSeats.entries()];
+    let   succeeded   = 0;
+    let   failed      = [];
+
+    let maxBookingId = 0;
+    try {
+        const allBookings = await fetch(`${API}/bookings/all`).then(r => r.json());
+        allBookings.forEach(b => {
+            const num = parseInt(b.bookingId.replace('B', ''));
+            if (!isNaN(num) && num > maxBookingId) maxBookingId = num;
+        });
+    } catch (e) { /* default to 0 if fails */ }
+
+    // Book each seat one at a time
+    for (const [seatId, ticketType] of seatEntries) {
+        maxBookingId++;
+        try {
+            const res = await fetch(`${API}/bookings/add`, {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    bookingId: 'B' + maxBookingId,
+                    userId, movieId, seatId, showtime: showtimeVal, ticketType
+                })
+            });
+            const msg = await res.text();
+            if (msg.includes('successfully')) {
+                succeeded++;
+                // Mark seat booked on map
+                const btn = document.querySelector(`.seat[data-seat="${seatId}"]`);
+                if (btn) { btn.classList.remove('selected'); btn.classList.add('booked'); btn.disabled = true; }
+                selectedSeats.delete(seatId);
+                bookedSeats.add(seatId);
+            } else {
+                failed.push(seatId);
+            }
+        } catch { failed.push(seatId); }
+    }
+
+    updateSelectionUI();
+
+    if (failed.length === 0) {
+        msgEl.style.color   = '#6bff9e';
+        msgEl.textContent   = `✅ ${succeeded} seat${succeeded > 1 ? 's' : ''} booked successfully! Redirecting...`;
+        msgEl.style.display = 'block';
+        setTimeout(() => window.location.href = 'my-bookings.html', 1800);
+    } else if (succeeded > 0) {
+        msgEl.style.color   = '#ffd166';
+        msgEl.textContent   = `⚠️ ${succeeded} seat(s) booked. Failed: ${failed.join(', ')}. Try again for failed seats.`;
+        msgEl.style.display = 'block';
+        btn.disabled        = (selectedSeats.size === 0);
+        btn.textContent     = selectedSeats.size > 1 ? `🎟️ Retry ${selectedSeats.size} Seats` : '🎟️ Retry Seat';
+    } else {
+        msgEl.style.color   = '#ff6b6b';
+        msgEl.textContent   = 'Booking failed. Please try again.';
+        msgEl.style.display = 'block';
+        btn.disabled        = false;
+        btn.textContent     = '🎟️ Book Seats';
+    }
+});
+
+// ── INIT ─────────────────────────────────────────────
+loadBookedSeats();
+</script>
+</body>
+</html>
